@@ -72,7 +72,7 @@ review without an actual decision tied to specific content.
 
 ## Ongoing remote copy — commit and push
 
-Profile 0.10.0 declares in hub.json
+Profile 0.11.0 declares in hub.json
 `policy.remote_copy: "required_after_validated_task"`. This is an explicit
 Git-copy obligation, separate from approving drafts (`publication`) and
 from disabled operational actions (`external_actions`). A missing field,

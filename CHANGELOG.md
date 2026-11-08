@@ -14,6 +14,16 @@ shape or an existing hub's directory structure.
 
 ## [Unreleased]
 
+### Fixed
+
+- `validate_hub.py` now rejects a `supersedes` pointing at a target that
+  exists but isn't a `.md` document (e.g. a raw `.txt` bronze source).
+  Previously this silently passed — `status: deprecated` enforcement only
+  ran for targets the validator had parsed as `.md` documents, so a
+  `.txt` target bypassed the check `SCHEMA.md` already documented as a
+  hard error. Found by a fresh-context repository review.
+- `docs/migration-0.11.0.md`.
+
 ## [0.10.0] — 2026-11-08
 
 ### Added
