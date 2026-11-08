@@ -1,6 +1,6 @@
 # New hub profile
 
-`hub.json` configures the local pattern (version 0.10.0). It's not part of
+`hub.json` configures the local pattern (version 0.11.0). It's not part of
 the OKF standard. Policy declarations are instructions for the agent; the
 generator doesn't install a process that technically enforces them.
 
@@ -55,8 +55,10 @@ which version of a source was captured. `supersedes` points to another
 local `.md` document that this one replaces as the current version of
 the same source; the target's own `status` must be `deprecated`, which
 `validate_hub.py` enforces, and a silver/gold citation of a superseded
-file gets a non-blocking warning. See SCHEMA.md's "Source freshness
-and supersession" section.
+file gets a non-blocking warning. Since 0.11.0, a target that exists but
+isn't a `.md` document (e.g. a raw `.txt` source) is also a hard error —
+previously it silently bypassed the `status: deprecated` check entirely.
+See SCHEMA.md's "Source freshness and supersession" section.
 
 `external_refs[].cited_as_of` (optional, ISO 8601 date) is the same
 idea applied across a hub boundary, where there's no file to point
@@ -99,6 +101,20 @@ Write the changelog entry as part of the PR that bumps `profile_version`
 (under "Unreleased" until merged, then retitled with the release date).
 The tag can only be created afterward, on the actual merge commit once it
 exists — push it right after merging, not as a later afterthought.
+
+Profile 0.11.0 fixes a gap a fresh-context repository review found
+between documented and actual `validate_hub.py` behavior:
+`check_supersedes()` only enforced `status: deprecated` against a target
+it had parsed as a `.md` document, so a `supersedes` pointing at an
+existing `.txt` file silently passed — a "this replaces that" claim the
+old file could never actually back up, since a raw source has no
+`status` field at all. `SCHEMA.md` already stated the `.md`-only rule in
+prose since 0.9.0; this release makes `validate_hub.py` reject a
+non-`.md` existing target with a new error, closing the gap rather than
+introducing a new idea. No new frontmatter field, no breaking CLI
+change — a stricter check on an already-documented rule. The adoption
+procedure for 0.10.0 → 0.11.0 is in docs/migration-0.11.0.md in the
+generator repository.
 
 Profile 0.10.0 adds optional document-level `verified` (a list of
 `{by, at}` entries, reusing `generated.by`'s actor convention) and

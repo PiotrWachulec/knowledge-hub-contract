@@ -264,12 +264,12 @@ class ValidateHubTests(unittest.TestCase):
         self.assertEqual(report['warnings'], [])
 
     def test_profile_version_requires_explicit_upgrade(self):
-        for version in ('0.9.0', '0.2.2', '0.2.1', '0.2.0', '0.1.1', '0.5.1', None, 0.4):
+        for version in ('0.10.0', '0.2.2', '0.2.1', '0.2.0', '0.1.1', '0.5.1', None, 0.4):
             with self.subTest(version=version):
                 self.config(lambda c: c.update(profile_version=version))
-                self.validate(False, 'implements profile 0.10.0')
+                self.validate(False, 'implements profile 0.11.0')
         self.config(lambda c: c.pop('profile_version'))
-        self.validate(False, 'implements profile 0.10.0')
+        self.validate(False, 'implements profile 0.11.0')
 
     def test_invalid_remote_copy_policy_does_not_skip_documents(self):
         self.config(lambda c: c['policy'].pop('remote_copy'))
@@ -672,6 +672,16 @@ class ValidateHubTests(unittest.TestCase):
             BRONZE_DOC.format(status='stable', extra='supersedes: missing.md\n'),
             encoding='utf-8')
         self.validate(False, 'does not exist')
+
+    def test_supersedes_pointing_at_non_markdown_target_is_rejected(self):
+        (self.hub / 'knowledge/00-bronze/old-source.txt').write_text(
+            'Raw content.\n', encoding='utf-8')
+        (self.hub / 'knowledge/00-bronze/new-source.md').write_text(
+            BRONZE_DOC.format(status='stable', extra='supersedes: old-source.txt\n'),
+            encoding='utf-8')
+        report = self.validate(False, 'supersedes must point to a .md document')
+        self.assertTrue(any(e['file'] == 'knowledge/00-bronze/new-source.md'
+                            for e in report['errors']))
 
     def test_retrieved_at_requires_iso_datetime_with_timezone(self):
         path = self.hub / 'knowledge/00-bronze/dated-source.md'
