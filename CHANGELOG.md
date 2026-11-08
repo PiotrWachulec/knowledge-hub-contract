@@ -14,6 +14,18 @@ shape or an existing hub's directory structure.
 
 ## [Unreleased]
 
+### Added
+
+- Optional document field `verified`: a list of `{by, at}` entries,
+  using `generated.by`'s actor convention (`human:<id>`, `process:<id>`,
+  or `<vendor>/<version>`). A reader derives a trust tier from the array
+  (unverified / machine-confirmed / human-reviewed) without any stored
+  tier field. `validate_hub.py` checks each entry's shape only.
+- Optional document field `stale_after` (ISO 8601 datetime with
+  timezone), marking when a document needs review. Format-checked only;
+  nothing compares it to the current date.
+- `docs/migration-0.10.0.md`.
+
 ## [0.9.0] — 2026-10-26
 
 ### Added

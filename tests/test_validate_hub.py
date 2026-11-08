@@ -264,12 +264,12 @@ class ValidateHubTests(unittest.TestCase):
         self.assertEqual(report['warnings'], [])
 
     def test_profile_version_requires_explicit_upgrade(self):
-        for version in ('0.8.0', '0.2.2', '0.2.1', '0.2.0', '0.1.1', '0.5.1', None, 0.4):
+        for version in ('0.9.0', '0.2.2', '0.2.1', '0.2.0', '0.1.1', '0.5.1', None, 0.4):
             with self.subTest(version=version):
                 self.config(lambda c: c.update(profile_version=version))
-                self.validate(False, 'implements profile 0.9.0')
+                self.validate(False, 'implements profile 0.10.0')
         self.config(lambda c: c.pop('profile_version'))
-        self.validate(False, 'implements profile 0.9.0')
+        self.validate(False, 'implements profile 0.10.0')
 
     def test_invalid_remote_copy_policy_does_not_skip_documents(self):
         self.config(lambda c: c['policy'].pop('remote_copy'))
@@ -694,6 +694,61 @@ class ValidateHubTests(unittest.TestCase):
             encoding='utf-8')
         report = self.validate()
         self.assertFalse(any('source_ref' in e['message'] for e in report['errors']))
+
+    def test_verified_must_be_a_list(self):
+        path = self.hub / 'knowledge/00-bronze/verified-source.md'
+        path.write_text(
+            BRONZE_DOC.format(status='stable',
+                               extra='verified: {"by": "human:editor", "at": "2026-09-23T12:00:00Z"}\n'),
+            encoding='utf-8')
+        self.validate(False, 'verified must be a list')
+
+    def test_verified_entry_requires_nonempty_by(self):
+        path = self.hub / 'knowledge/00-bronze/verified-source.md'
+        path.write_text(
+            BRONZE_DOC.format(status='stable',
+                               extra='verified:\n  - by: ""\n    at: 2026-09-23T12:00:00Z\n'),
+            encoding='utf-8')
+        self.validate(False, 'Each verified[] entry requires a nonempty by')
+
+    def test_verified_entry_requires_valid_iso_datetime(self):
+        path = self.hub / 'knowledge/00-bronze/verified-source.md'
+        path.write_text(
+            BRONZE_DOC.format(status='stable',
+                               extra='verified:\n  - by: human:editor\n    at: 2026-09-23\n'),
+            encoding='utf-8')
+        self.validate(False, 'verified[].at must be an ISO 8601 datetime with timezone')
+
+    def test_verified_with_valid_entry_is_clean(self):
+        path = self.hub / 'knowledge/00-bronze/verified-source.md'
+        path.write_text(
+            BRONZE_DOC.format(status='stable',
+                               extra='verified:\n  - by: human:editor\n    at: 2026-09-23T12:00:00Z\n'),
+            encoding='utf-8')
+        report = self.validate()
+        self.assertFalse(any('verified' in e['message'] for e in report['errors']))
+
+    def test_verified_supports_multiple_entries(self):
+        path = self.hub / 'knowledge/00-bronze/verified-source.md'
+        path.write_text(
+            BRONZE_DOC.format(
+                status='stable',
+                extra='verified:\n  - by: process:ci\n    at: 2026-09-23T12:00:00Z\n'
+                      '  - by: human:editor\n    at: 2026-09-24T09:00:00Z\n'),
+            encoding='utf-8')
+        report = self.validate()
+        self.assertFalse(any('verified' in e['message'] for e in report['errors']))
+
+    def test_stale_after_requires_iso_datetime_with_timezone(self):
+        path = self.hub / 'knowledge/00-bronze/stale-source.md'
+        path.write_text(BRONZE_DOC.format(status='stable', extra='stale_after: 2027-05-01\n'),
+                        encoding='utf-8')
+        self.validate(False, 'stale_after must be an ISO 8601 datetime with timezone')
+        path.write_text(
+            BRONZE_DOC.format(status='stable', extra='stale_after: 2027-05-01T00:00:00Z\n'),
+            encoding='utf-8')
+        report = self.validate()
+        self.assertFalse(any('stale_after' in e['message'] for e in report['errors']))
 
     def test_citing_superseded_bronze_source_is_warned(self):
         (self.hub / 'knowledge/00-bronze/old-source.md').write_text(

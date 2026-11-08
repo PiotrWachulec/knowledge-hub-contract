@@ -1,6 +1,6 @@
 # New hub profile
 
-`hub.json` configures the local pattern (version 0.9.0). It's not part of
+`hub.json` configures the local pattern (version 0.10.0). It's not part of
 the OKF standard. Policy declarations are instructions for the agent; the
 generator doesn't install a process that technically enforces them.
 
@@ -65,6 +65,19 @@ the target. The validator never opens the other hub, so it can't check
 staleness from this date; it's a starting point for a human, not a
 check.
 
+`verified` and `stale_after` are also document-level fields, added in
+0.10.0, both optional, formalizing two names the contract already used
+in prose without a field or a check behind them. `verified` is a list of
+`{by, at}` entries using `generated.by`'s actor convention
+(`human:<id>`/`process:<id>`/`<vendor>/<version>`); a reader derives a
+trust tier from the array (no `human:` entry present → unverified or
+machine-confirmed; at least one → human-reviewed) without any stored
+tier field. `stale_after` is an ISO 8601 datetime with timezone marking
+when a document needs review. `validate_hub.py` checks both fields'
+shape only — no trust-tier computation, no staleness check against the
+current date, since the validator is deterministic and takes no
+wall-clock input. See SCHEMA.md's "Approval and changes" section.
+
 The skill directory can be copied in full. The templates are generator
 resources. A template change applies to new hubs; an existing hub keeps
 its own contract.
@@ -86,6 +99,20 @@ Write the changelog entry as part of the PR that bumps `profile_version`
 (under "Unreleased" until merged, then retitled with the release date).
 The tag can only be created afterward, on the actual merge commit once it
 exists — push it right after merging, not as a later afterthought.
+
+Profile 0.10.0 adds optional document-level `verified` (a list of
+`{by, at}` entries, reusing `generated.by`'s actor convention) and
+`stale_after` (an ISO 8601 datetime with timezone), formalizing two
+field names `SCHEMA.md` already used in prose ("Approval and changes")
+without a shape or a check behind them. `validate_hub.py` checks each
+`verified[]` entry's `by`/`at` shape and `stale_after`'s datetime
+format; a trust tier (unverified/machine-confirmed/human-reviewed) is
+derived by a reader from the array, not stored or computed by the
+validator, and nothing compares `stale_after` to the current date — the
+validator stays deterministic with no wall-clock input, the same
+reasoning behind `external_refs[].cited_as_of` in 0.9.0. The adoption
+procedure for 0.9.0 → 0.10.0 is in docs/migration-0.10.0.md in the
+generator repository.
 
 Profile 0.9.0 adds optional document-level `retrieved_at` (ISO 8601
 datetime with timezone) and `source_ref` (a nonempty version

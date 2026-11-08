@@ -1,4 +1,4 @@
-# Knowledge processing contract — profile 0.9.0
+# Knowledge processing contract — profile 0.10.0
 
 This contract describes work inside a single hub. The OKF 0.2 bundle covers
 only `knowledge/`. Configuration and instructions in the parent directory
@@ -317,7 +317,7 @@ also ready to be a citation target.
 `.venv/bin/python -B scripts/validate_hub.py` checks the hub containing the
 script, not the current working directory. Python 3.10+, standard library
 only, no network access, no writes. This is a validator for local profile
-0.9.0, not the full OKF. Scripts always run inside the local virtual
+0.10.0, not the full OKF. Scripts always run inside the local virtual
 environment. If `.venv` doesn't exist, the agent creates it beforehand with
 `python3 -m venv .venv` in the hub directory. On Windows the interpreter is
 at `.venv/Scripts/python.exe`. No system-wide installs; any packages only
@@ -328,7 +328,7 @@ Checks:
 
 - the required scaffold files, the `hub.json` configuration, and every
   `.md` file under knowledge;
-- `profile_version: "0.9.0"` and
+- `profile_version: "0.10.0"` and
   `policy.remote_copy: "required_after_validated_task"`;
 - document frontmatter (outside the closed exception list above): `type`,
   `title`, `description`, `status`, `generated`; `type` must be in
@@ -360,6 +360,10 @@ Checks:
   itself, and that document's `status` is `deprecated`, else an error;
   a silver/gold source pointing at a superseded bronze file produces a
   warning, not an error (see "Source freshness and supersession").
+- if present, `verified` is a list whose entries each have a nonempty
+  `by` and an `at` that's an ISO 8601 datetime with timezone;
+- if present, `stale_after` is an ISO 8601 datetime with timezone (see
+  "Approval and changes").
 
 stdout output is a single JSON object: `violations` (error count), `errors`
 and `warnings` (lists of `file`, `line`, `message` objects). stderr
@@ -684,15 +688,46 @@ the contract describes the possibility of parallel work.
 agent's drafts are `draft`. Moving to `stable` rests on a user decision or
 a later, explicitly established policy for that process.
 
-The `verified` field describes a content check, not mere consent to use
-it. The agent doesn't grant itself human verification. It may record the
-actual result of a user's review, indicating the decision and the scope
-of content checked. After a substantive change, the earlier verification
-stays in the old version's history; the new one requires a fresh check. A
-future approval mechanism should tie the decision to a content hash.
+The optional `verified` field describes a content check, not mere consent
+to use it — a list of entries, each `{by, at}`: an actor using the same
+convention as `generated.by` (`human:<id>`, `process:<id>`, or
+`<vendor>/<version>`) and an ISO 8601 datetime with timezone recording
+when that actor checked the content. The agent doesn't grant itself human
+verification: adding an entry whose `by` isn't `human:...` records a
+mechanical or agent re-check, not a substitute for one. A reader derives
+a trust tier from the array as a whole — nothing stores the tier itself:
 
-The optional `stale_after` marks the need for a review over time. Don't
-renew freshness just because the document was regenerated.
+- no `verified` key at all — **unverified**;
+- `verified` present but no entry's `by` starts with `human:` —
+  **machine-confirmed**;
+- at least one entry with a `human:` actor — **human-reviewed**.
+
+After a substantive change, the earlier verification stays in the old
+version's history; the new one requires a fresh check — this contract has
+no mechanism that automatically invalidates `verified[]` on edit, so
+adding a fresh entry after a substantive change is a manual step, same as
+every other frontmatter field here. A future approval mechanism should tie
+the decision to a content hash. `validate_hub.py` checks the shape of
+each entry (a nonempty `by`, a valid `at`); it has no opinion on whether a
+check actually happened — declared, not inferred, the same as
+`classification` above.
+
+The optional `stale_after` (an ISO 8601 datetime with timezone) marks the
+need for a review over time. Don't renew freshness just because the
+document was regenerated. Like `external_refs[].cited_as_of`,
+`validate_hub.py` only checks the format — nothing compares it to the
+current date, since the validator takes no wall-clock input and stays
+deterministic; noticing that `stale_after` has passed, and acting on it,
+is a reader's or a later task's job, not an automatic check today.
+
+Example:
+
+```yaml
+verified:
+  - by: human:editor
+    at: 2026-11-05T09:00:00Z
+stale_after: 2027-05-01T00:00:00Z
+```
 
 ## Autonomy and ownership
 
@@ -716,7 +751,7 @@ the other two scopes: `publication` concerns accepting drafts for
 publication, and `external_actions` concerns operational actions, e.g.
 changing a campaign budget. The field doesn't pick a remote and doesn't
 authorize sending to just any destination. It's required under profile
-0.9.0. A missing or different value is a contract inconsistency, not a
+0.10.0. A missing or different value is a contract inconsistency, not a
 local-work mode. An instruction for local-only work is an exception for
 the task, not a configuration change. An older hub without this field
 hasn't automatically adopted this rule; it needs an explicit contract
@@ -730,7 +765,7 @@ agreed main branch as a draft, same as before this field existed.
 `"required_pr"` routes content through the same branch + PR + review
 procedure already used for contract changes, with no self-merge — useful
 once more than one person or agent writes to the same hub, to avoid
-silent overwrites. It's required under profile 0.9.0, with the same rule
+silent overwrites. It's required under profile 0.10.0, with the same rule
 as `remote_copy`: a missing or different value is a contract
 inconsistency, not a default, and an older hub without the field hasn't
 adopted either value automatically.
