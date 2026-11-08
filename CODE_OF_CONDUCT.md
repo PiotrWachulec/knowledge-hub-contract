@@ -52,7 +52,7 @@ the project in public spaces.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may
-be reported to the maintainers at **[INSERT CONTACT EMAIL]**. All
+be reported to the maintainers at **piotr@wachulec.me**. All
 complaints will be reviewed and investigated promptly and fairly.
 
 All maintainers are obligated to respect the privacy and security of the
