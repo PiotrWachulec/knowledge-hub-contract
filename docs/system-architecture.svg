@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="940" viewBox="0 0 1200 940" role="img" aria-labelledby="title desc">
-  <title id="title">Master Hub — knowledge and action architecture</title>
+  <title id="title">Knowledge Hub Contract — knowledge and action architecture</title>
   <desc id="desc">A data lake and transcription feed bronze. A topic hub grows silver and gold. On request, an agent reads selected theory plus the local context of a company hub. It writes the result into the company hub's gold. Hubs don't import or sync their knowledge. Operational actions require separate consent.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#607087"/></marker>
@@ -15,7 +15,7 @@
     </style>
   </defs>
   <rect width="1200" height="940" fill="#f6f8fb"/>
-  <text x="40" y="49" class="title">Master Hub</text>
+  <text x="40" y="49" class="title">Knowledge Hub Contract</text>
   <text x="40" y="77" class="subtitle">Optional agent work • independent hubs, no imports or sync</text>
 
   <rect x="40" y="105" width="300" height="82" class="box"/>
