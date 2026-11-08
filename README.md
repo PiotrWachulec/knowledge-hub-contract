@@ -1,5 +1,9 @@
 # Knowledge Hub Contract
 
+[![CI](https://github.com/PiotrWachulec/knowledge-hub-contract/actions/workflows/ci.yml/badge.svg)](https://github.com/PiotrWachulec/knowledge-hub-contract/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/github/license/PiotrWachulec/knowledge-hub-contract)](LICENSE)
+[![Latest profile](https://img.shields.io/github/v/tag/PiotrWachulec/knowledge-hub-contract?label=profile)](CHANGELOG.md)
+
 A portable tool for creating and working with Markdown knowledge hubs:
 generator, skills, templates, and an agent working contract.
 
@@ -214,6 +218,13 @@ MIT) — an independent implementation of the same idea, the source of the
 ingest/query/lint pattern, and the direct inspiration for
 `scripts/check_evidence.py` and the triage/Status conventions introduced in
 profile 0.2.2.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, the versioning policy,
+and what a PR should look like. Participation is governed by
+[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). Report a security issue per
+[SECURITY.md](SECURITY.md) rather than in a public issue.
 
 ## License
 

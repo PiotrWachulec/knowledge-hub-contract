@@ -1,0 +1,44 @@
+name: Bug report
+description: Something in the generator, validator, or contract behaves incorrectly
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you expected instead, and what actually happened.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: >
+        The exact command you ran (`create_hub.py`/`validate_hub.py`/`check_evidence.py`),
+        plus the minimal `hub.json` or document frontmatter that reproduces it.
+        A minimal case is much faster to fix than a description of a large hub.
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: profile-version
+    attributes:
+      label: profile_version
+      placeholder: "0.10.0"
+    validations:
+      required: false
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      placeholder: "3.12.1"
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Actual output
+      description: The JSON report and/or stderr output, if applicable.
+      render: shell
+    validations:
+      required: false

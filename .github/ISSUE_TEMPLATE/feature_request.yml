@@ -1,0 +1,46 @@
+name: Feature or contract change proposal
+description: Propose a new capability, a new contract field, or a new convention
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Before proposing: check `README.md`'s "Deliberately not built" section —
+        some omissions (automatic ingest, sync, polling) are intentional, not
+        gaps. A proposal that re-introduces one of those needs a strong reason.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What's missing or awkward today, in a concrete working scenario — not just "it would be nice if."
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: >
+        What you'd add or change. If this touches the contract (a new frontmatter
+        field, a new validator check, a new concept type), say which files would
+        need it: `SCHEMA.md`, `AGENTS.md`, `validate_hub.py`, `create_hub.py`.
+    validations:
+      required: true
+  - type: dropdown
+    id: version-shape
+    attributes:
+      label: What kind of change is this?
+      description: See CONTRIBUTING.md's versioning policy section.
+      options:
+        - "Not sure"
+        - "Docs-only fix (patch)"
+        - "New backward-compatible capability (minor)"
+        - "Breaking change to bundle shape or directory structure (major)"
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Why a plain Markdown convention/decision-layer entry/existing field isn't already enough.
+    validations:
+      required: false
