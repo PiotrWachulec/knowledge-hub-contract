@@ -7,24 +7,14 @@
 A portable tool for creating and working with Markdown knowledge hubs:
 generator, skills, templates, and an agent working contract.
 
+Unlike a plain wiki or notes app, every claim in the connected wiki stays
+traceable back to the bronze source it came from — a local, non-blocking
+check flags any number, date, or quote that's no longer actually present
+in its cited material.
+
 This repository doesn't store the content, registry, or configuration of
 any specific hubs. The user points to the target of each operation. A
 generated hub works without access to this repository.
-
-## Python environment
-
-Scripts and tests always run inside the local `.venv`, even when they only
-use the standard library. If `.venv` doesn't exist, create it in the
-engine directory with `python3 -m venv .venv` (Python 3.10+). The system
-Python is only for creating the environment; afterward use
-`.venv/bin/python`. On Windows the equivalent is `.venv/Scripts/python.exe`.
-
-Every hub creates its own environment after being generated. We don't copy
-`.venv` between projects or into Git. We don't overwrite an existing,
-broken environment. We don't install packages globally, via `pip --user`,
-or `sudo`. Any dependencies are installed via `.venv/bin/python -m pip`
-without `--system-site-packages`. The generator, the validator, and their
-tests need no packages.
 
 ## Create a hub
 
@@ -70,26 +60,6 @@ previous one.
 
 [Example requests](docs/first-run.md) · [Usage plan](docs/plan.md)
 
-## Remote copy of real hubs
-
-New hubs commit the agent to committing and pushing after completed,
-validated tasks and after consistent stages of longer work. You don't need
-to separately say "push it." The destination and repository access are
-agreed during the first setup; the generator itself doesn't create Git or
-a remote. The agent confirms the commit on the remote repository or
-reports a missing current copy. The obligation is explicit in `hub.json`
-under profile 0.11.0: `policy.remote_copy: "required_after_validated_task"`.
-
-This is a working instruction for the agent, not a background backup. It
-covers pushed Git files, not external recordings or ignored files.
-Existing hubs don't change automatically: [explicit rule adoption](docs/hub-git-backup.md).
-
-By default content pushes straight to the agreed main branch as a draft
-(`policy.content_review: "direct"`). For a hub with more than one
-contributor, switch it to `"required_pr"` so content goes through a
-branch and PR too, same as contract changes — solo hubs are unaffected
-unless this is set explicitly.
-
 ## Two portable skills
 
 - [create-knowledge-hub](skills/create-knowledge-hub/SKILL.md) — creates a new hub.
@@ -100,84 +70,6 @@ The skills aren't installed globally. You can hand the agent a path to
 SKILL.md or move the whole chosen package. A merge in the engine alone
 doesn't change the instructions of existing hubs or other agents'
 configuration.
-
-## Versions and capabilities
-
-Format: OKF 0.2. Local working profile: 0.11.0, recorded in `hub.json`.
-Template changes affect new hubs; existing ones need an explicit
-migration. There's no automatic migrator, nor an obligation to adopt every
-new OKF version immediately. Each profile release is tagged (`vX.Y.Z`);
-see [CHANGELOG.md](CHANGELOG.md) for what changed in each one.
-
-Every hub and every silver/gold document has a stable, name-independent
-identity (`hub_key`, `doc_key`) since 0.4.0. Since 0.5.0, a document can
-**Cite** (read-only pointer) or **Derive** (locally-authored, anonymized
-content with a provenance trail) material from another hub, governed by
-a closed classification system (`Public`/`Internal`/`Confidential`/
-`Secret`) that keeps `Secret` material from ever being referenced and
-flags likely leaks in a `Confidential` citation's free-text note. See the
-[0.4.0 → 0.5.0 update](docs/migration-0.5.0.md) and the
-[competency × initiative diagram](docs/cross-hub-architecture.md) for the
-full picture. Hubs still never import, sync, or register with each
-other — only these deliberate, pointer-based references exist between
-them.
-
-For the future we keep the [0.1.1 → 0.2.0 migration procedure](docs/migration-0.2.0.md).
-Adopting the Git copy is described in the [0.2.0 → 0.2.1 update](docs/hub-git-backup.md).
-Grounding, source triage, and Query/Archive are described in the
-[0.2.1 → 0.2.2 update](docs/migration-0.2.2.md). Opt-in PR review for
-shared hubs is described in the [0.2.2 → 0.3.0 update](docs/migration-0.3.0.md).
-Stable cross-hub identity is described in the
-[0.3.0 → 0.4.0 update](docs/migration-0.4.0.md), and cross-hub citation
-in the [0.4.0 → 0.5.0 update](docs/migration-0.5.0.md). Dataview-driven
-layer indexes are described in the
-[0.5.1 → 0.6.0 update](docs/migration-0.6.0.md). The non-blocking
-hard-wrapped-paragraph check is described in the
-[0.6.0 → 0.7.0 update](docs/migration-0.7.0.md). Pluggable, model-agnostic
-`conventions/` (e.g. this project's `polish-typography` dash rule) are
-described in the
-[0.7.0 → 0.8.0 update](docs/migration-0.8.0.md). Source freshness and
-supersession — a new bronze file's `supersedes` pointer, the old file's
-`status: deprecated`, and a warning on a silver/gold citation left
-pointing at the superseded file — are described in the
-[0.8.0 → 0.9.0 update](docs/migration-0.9.0.md). Verification
-(`verified[]`, with a trust tier a reader derives: unverified,
-machine-confirmed, or human-reviewed) and `stale_after` — two field
-names the contract already used in prose, now with an actual shape and
-a `validate_hub.py` check — are described in the
-[0.9.0 → 0.10.0 update](docs/migration-0.10.0.md). A `supersedes` target
-that isn't a `.md` document is now a hard error too, closing a gap where
-it previously passed silently — described in the
-[0.10.0 → 0.11.0 update](docs/migration-0.11.0.md). We currently assume
-no existing hubs and perform no migrations. This document neither
-requires nor runs a hub registry.
-
-The generator, the editing instructions, the local structure validator,
-and the non-blocking grounding report all work. Automatic ingest, sync, a
-full OKF validator, and operational integrations are not implemented.
-
-### Deliberately not built
-
-Following the "Design Boundaries" section in the `karpathy-llm-wiki`
-README (see "Inspirations" below) — a short "why," not just "what's
-missing":
-
-- **Anchoring a quote precisely to a single footnote** in the grounding
-  check — real errors are almost always "value absent from any source in
-  the document," which a whole-document check already catches; precise
-  anchoring would only guard against a failure mode that doesn't occur in
-  practice.
-- **Automatic freshness detection via a hash of bronze sources** — bronze
-  is immutable by the contract's own definition; new knowledge enters as a
-  new file via ingest anyway, not by editing an existing one.
-- **Numeric confidence/quality scores for content** — false precision
-  without calibration; the strength of evidence belongs in the prose and
-  in human review, not in a number.
-- **Vector or graph search over the knowledge** — at the scale of a single
-  hub, grep and reading files are sufficient and more predictable; worth
-  adding only once recall measurably degrades.
-- **Automatic hooks and run schedules** — those belong to the agent
-  harness (hooks, cron), not to a portable, tool-agnostic skill.
 
 ## Structure check in a generated hub
 
@@ -212,9 +104,81 @@ sources. It always exits with code 0 and never counts toward the
 [Optional multi-hub model](docs/system-architecture.svg) ·
 [Competency × initiative matrix](docs/cross-hub-architecture.md)
 
-Tests in the engine directory: `.venv/bin/python -B -m unittest discover -s tests -v`.
+## Python environment
 
-Inspirations: [LLM Wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f),
+Scripts and tests always run inside the local `.venv`, even when they only
+use the standard library. If `.venv` doesn't exist, create it in the
+engine directory with `python3 -m venv .venv` (Python 3.10+). The system
+Python is only for creating the environment; afterward use
+`.venv/bin/python`. On Windows the equivalent is `.venv/Scripts/python.exe`.
+
+Every hub creates its own environment after being generated. We don't copy
+`.venv` between projects or into Git. We don't overwrite an existing,
+broken environment. We don't install packages globally, via `pip --user`,
+or `sudo`. Any dependencies are installed via `.venv/bin/python -m pip`
+without `--system-site-packages`. The generator, the validator, and their
+tests need no packages.
+
+## Remote copy of real hubs
+
+New hubs commit the agent to committing and pushing after completed,
+validated tasks and after consistent stages of longer work. You don't need
+to separately say "push it." The destination and repository access are
+agreed during the first setup; the generator itself doesn't create Git or
+a remote. The agent confirms the commit on the remote repository or
+reports a missing current copy. The obligation is explicit in `hub.json`
+under profile 0.11.0: `policy.remote_copy: "required_after_validated_task"`.
+
+This is a working instruction for the agent, not a background backup. It
+covers pushed Git files, not external recordings or ignored files.
+Existing hubs don't change automatically: [explicit rule adoption](docs/hub-git-backup.md).
+
+By default content pushes straight to the agreed main branch as a draft
+(`policy.content_review: "direct"`). For a hub with more than one
+contributor, switch it to `"required_pr"` so content goes through a
+branch and PR too, same as contract changes — solo hubs are unaffected
+unless this is set explicitly.
+
+## Deliberately not built
+
+Following the "Design Boundaries" section in the `karpathy-llm-wiki`
+README (see "Inspirations" below) — a short "why," not just "what's
+missing":
+
+- **Anchoring a quote precisely to a single footnote** in the grounding
+  check — real errors are almost always "value absent from any source in
+  the document," which a whole-document check already catches; precise
+  anchoring would only guard against a failure mode that doesn't occur in
+  practice.
+- **Automatic freshness detection via a hash of bronze sources** — bronze
+  is immutable by the contract's own definition; new knowledge enters as a
+  new file via ingest anyway, not by editing an existing one.
+- **Numeric confidence/quality scores for content** — false precision
+  without calibration; the strength of evidence belongs in the prose and
+  in human review, not in a number.
+- **Vector or graph search over the knowledge** — at the scale of a single
+  hub, grep and reading files are sufficient and more predictable; worth
+  adding only once recall measurably degrades.
+- **Automatic hooks and run schedules** — those belong to the agent
+  harness (hooks, cron), not to a portable, tool-agnostic skill.
+
+## Versions and capabilities
+
+Format: OKF 0.2. Local working profile: 0.11.0, recorded in `hub.json`.
+The full version history — what each profile adds and why — lives in
+[CHANGELOG.md](CHANGELOG.md) and in `references/profile.md`'s
+[Versioning](skills/create-knowledge-hub/references/profile.md#versioning)
+section; each release also has its own `docs/migration-x.y.z.md` adoption
+procedure. There's no automatic migrator, nor an obligation to adopt every
+new profile version immediately.
+
+The generator, the editing instructions, the local structure validator,
+and the non-blocking grounding report all work. Automatic ingest, sync, a
+full OKF validator, and operational integrations are not implemented.
+
+## Inspirations
+
+[LLM Wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f),
 [OKF](https://github.com/GoogleCloudPlatform/open-knowledge-format/blob/main/SPEC.md),
 and [karpathy-llm-wiki](https://github.com/Astro-Han/karpathy-llm-wiki) (Astro-Han,
 MIT) — an independent implementation of the same idea, the source of the
@@ -224,10 +188,10 @@ profile 0.2.2.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, the versioning policy,
-and what a PR should look like. Participation is governed by
-[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). Report a security issue per
-[SECURITY.md](SECURITY.md) rather than in a public issue.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, running the test suite,
+the versioning policy, and what a PR should look like. Participation is
+governed by [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). Report a security
+issue per [SECURITY.md](SECURITY.md) rather than in a public issue.
 
 ## License
 
