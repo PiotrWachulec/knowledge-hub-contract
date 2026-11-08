@@ -11,8 +11,8 @@ generated hub, that's `AGENTS.md`/`SCHEMA.md` in
 Standard library only, no external dependencies.
 
 ```bash
-git clone https://github.com/PiotrWachulec/master-hub.git
-cd master-hub
+git clone https://github.com/PiotrWachulec/knowledge-hub-contract.git
+cd knowledge-hub-contract
 python3 -m venv .venv          # Python 3.10+
 .venv/bin/python -B -m unittest discover -s tests -v
 ```

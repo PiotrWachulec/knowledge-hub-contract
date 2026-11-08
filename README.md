@@ -1,8 +1,8 @@
 # Knowledge Hub Contract
 
-[![CI](https://github.com/PiotrWachulec/master-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/PiotrWachulec/master-hub/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/github/license/PiotrWachulec/master-hub)](LICENSE)
-[![Latest profile](https://img.shields.io/github/v/tag/PiotrWachulec/master-hub?label=profile)](CHANGELOG.md)
+[![CI](https://github.com/PiotrWachulec/knowledge-hub-contract/actions/workflows/ci.yml/badge.svg)](https://github.com/PiotrWachulec/knowledge-hub-contract/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/github/license/PiotrWachulec/knowledge-hub-contract)](LICENSE)
+[![Latest profile](https://img.shields.io/github/v/tag/PiotrWachulec/knowledge-hub-contract?label=profile)](CHANGELOG.md)
 
 A portable tool for creating and working with Markdown knowledge hubs:
 generator, skills, templates, and an agent working contract.

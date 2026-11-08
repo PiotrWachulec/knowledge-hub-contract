@@ -28,7 +28,7 @@ a software release line with its own security maintenance).
 
 ## Reporting a Vulnerability
 
-Please use [GitHub's private vulnerability reporting](https://github.com/PiotrWachulec/master-hub/security/advisories/new)
+Please use [GitHub's private vulnerability reporting](https://github.com/PiotrWachulec/knowledge-hub-contract/security/advisories/new)
 for this repository rather than opening a public issue, so a fix can
 land before the report becomes public. If that's unavailable to you,
 open an issue with as little exploit detail as practical and ask for a
