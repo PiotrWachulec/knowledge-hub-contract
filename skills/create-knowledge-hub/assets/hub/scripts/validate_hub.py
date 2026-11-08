@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only validator of local hub profile 0.9.0, NOT a general OKF validator.
+"""Read-only validator of local hub profile 0.10.0, NOT a general OKF validator.
 
 Python 3.10+, standard library only. The supported frontmatter/Markdown
 subset and deliberate exclusions are documented in the hub's SCHEMA.md.
@@ -485,6 +485,23 @@ class Validator:
             source_ref = fm.get('source_ref')
             if source_ref is not None and not nonempty(source_ref):
                 self.report(doc, position('source_ref'), "source_ref must be a nonempty string when present")
+            verified = fm.get('verified')
+            if verified is not None:
+                if not isinstance(verified, list):
+                    self.report(doc, position('verified'), "verified must be a list")
+                else:
+                    for entry in verified:
+                        if not isinstance(entry, dict) or not nonempty(entry.get('by')):
+                            self.report(doc, position('verified'),
+                                         "Each verified[] entry requires a nonempty by")
+                            continue
+                        if not valid_iso_datetime(entry.get('at')):
+                            self.report(doc, position('verified'),
+                                         "verified[].at must be an ISO 8601 datetime with timezone")
+            stale_after = fm.get('stale_after')
+            if stale_after is not None and not valid_iso_datetime(stale_after):
+                self.report(doc, position('stale_after'),
+                             "stale_after must be an ISO 8601 datetime with timezone")
             doc_resolved = doc.resolve()
             self.doc_status[doc_resolved] = fm.get('status')
             supersedes = fm.get('supersedes')
@@ -705,8 +722,8 @@ class Validator:
                 raise ValueError('Duplicate concept_types')
             if config.get('bundle_root') != 'knowledge' or config.get('okf_version') != '0.2':
                 raise ValueError('This profile requires bundle_root=knowledge and okf_version=0.2')
-            if config.get('profile_version') != '0.9.0':
-                raise ValueError('This validator implements profile 0.9.0')
+            if config.get('profile_version') != '0.10.0':
+                raise ValueError('This validator implements profile 0.10.0')
             hub_key = config.get('hub_key')
             if not isinstance(hub_key, str) or not UUID_RE.fullmatch(hub_key):
                 raise ValueError('hub_key must be a UUID')
@@ -726,9 +743,9 @@ class Validator:
             policy = config.get('policy')
             if (not isinstance(policy, dict)
                     or policy.get('remote_copy') != 'required_after_validated_task'):
-                raise ValueError('Profile 0.9.0 requires policy.remote_copy=required_after_validated_task')
+                raise ValueError('Profile 0.10.0 requires policy.remote_copy=required_after_validated_task')
             if policy.get('content_review') not in ('direct', 'required_pr'):
-                raise ValueError('Profile 0.9.0 requires policy.content_review to be '
+                raise ValueError('Profile 0.10.0 requires policy.content_review to be '
                                  '"direct" or "required_pr"')
             quality = config.get('quality', {})
             if (not isinstance(quality, dict) or quality.get('validator') != 'scripts/validate_hub.py'
