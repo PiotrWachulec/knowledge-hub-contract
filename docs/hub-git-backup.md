@@ -44,7 +44,7 @@ user points to a hub and requests an update:
    the agreed repository; confirm the commit is present on the remote and
    open a PR without auto-merge.
 
-A merge in master-hub alone doesn't protect any existing hub. A missing
+A merge in knowledge-hub-contract alone doesn't protect any existing hub. A missing
 field in an older hub doesn't trigger the new rule. A missing or different
 value in a hub declaring 0.2.1 is a configuration error, not default
 consent.
