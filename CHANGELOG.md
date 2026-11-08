@@ -14,6 +14,8 @@ shape or an existing hub's directory structure.
 
 ## [Unreleased]
 
+## [0.10.0] — 2026-11-08
+
 ### Added
 
 - Optional document field `verified`: a list of `{by, at}` entries,
@@ -301,7 +303,8 @@ This profile ships identity only — no cross-hub citation mechanism yet.
   architecture: bronze preserves sources, silver grows a connected wiki,
   gold holds outputs prepared for a specific use.
 
-[Unreleased]: https://github.com/PiotrWachulec/master-hub/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/PiotrWachulec/master-hub/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/PiotrWachulec/master-hub/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/PiotrWachulec/master-hub/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/PiotrWachulec/master-hub/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/PiotrWachulec/master-hub/compare/v0.6.0...v0.7.0
