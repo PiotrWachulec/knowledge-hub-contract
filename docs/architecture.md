@@ -82,7 +82,7 @@ authorizing an automation to act are separate matters.
 
 ## Repository organization
 
-`master-hub` contains only the tool, templates, and documentation. It
+`knowledge-hub-contract` contains only the tool, templates, and documentation. It
 doesn't store a hub registry. The user points to the target hub; it may
 have its own repository or be part of a project. The diagram describes the
 working pattern inside a hub, not existing installations.

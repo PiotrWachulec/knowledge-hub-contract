@@ -1,4 +1,4 @@
-# Master Hub
+# Knowledge Hub Contract
 
 [![CI](https://github.com/PiotrWachulec/master-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/PiotrWachulec/master-hub/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/github/license/PiotrWachulec/master-hub)](LICENSE)
@@ -30,7 +30,7 @@ tests need no packages.
 
 Ask the agent to use [create-knowledge-hub](skills/create-knowledge-hub/SKILL.md)
 and point it to a new directory, a name, an owner, and a topic. Or run it
-from the master-hub directory (Python 3.10+, standard library):
+from the knowledge-hub-contract directory (Python 3.10+, standard library):
 
 ```sh
 .venv/bin/python skills/create-knowledge-hub/scripts/create_hub.py \

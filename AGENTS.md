@@ -1,4 +1,4 @@
-# Working on Master Hub
+# Working on Knowledge Hub Contract
 
 Start with README.md and docs/plan.md. The architecture is in
 docs/architecture.md. This repository contains only the generator,
