@@ -97,6 +97,17 @@ the hub's content, e.g. in conversation.
   tests and installing any packages via `-m pip`. Don't install globally
   or via pip --user/sudo pip; don't use --system-site-packages. Don't
   overwrite a broken venv, just report the problem. Don't commit `.venv/`.
+- When ingest needs a format conversion and the obvious tool (e.g.
+  `pandoc`) isn't on the system, install an existing library into the
+  hub's `.venv` via `-m pip` rather than writing a custom parser:
+
+  | Source | Package |
+  |---|---|
+  | HTML → Markdown | `markdownify` (plain conversion) or `trafilatura` (also strips boilerplate/ads from a saved web page) |
+  | PDF → text | `pypdf` |
+
+  Mention the added dependency when handing off; it's a `.venv` package
+  of the hub being edited, not a contract change.
 - For a clean, agreed repo, update the base branch with
   `git pull --ff-only`. A history divergence requires a resolution; don't
   create an automatic merge. For a contract change, create a branch before
