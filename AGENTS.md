@@ -1,5 +1,12 @@
 # Working on Knowledge Hub Contract
 
+This is the engine's own contribution contract — for a generated hub's
+working contract (the file an agent reads while curating hub content),
+see `skills/create-knowledge-hub/assets/hub/AGENTS.md` (the template) or
+that same file's copy inside an actual hub. The two are unrelated despite
+the shared filename: this one governs changes to the generator, that one
+governs knowledge editing in one hub.
+
 Start with README.md and docs/plan.md. The architecture is in
 docs/architecture.md. This repository contains only the generator,
 portable skills, templates, a local-profile validator, and tests. It

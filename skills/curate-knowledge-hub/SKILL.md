@@ -10,10 +10,19 @@ or location, and doesn't build a hub registry. The designated hub's own
 `AGENTS.md`/`SCHEMA.md`/`hub.json` set the methodology, format, quality
 checks, Git mechanics, and approval; they take precedence over this skill
 and are the source of truth for *how* to execute a task once you're
-working inside the hub. This skill covers what happens before that
-point — triage, authorization, and recognizing which track a request
-falls into — plus a fallback for a target too old, or too unrelated, to
-carry that guidance itself.
+working inside the hub. For an ordinary content task, this skill only
+covers what happens before that point — triage, authorization, and
+recognizing which track a request falls into — plus a fallback for a
+target too old, or too unrelated, to carry that guidance itself.
+
+The one task this skill owns outright, start to finish, is **upgrading
+a hub to a newer profile version** (the `contract` track's "migrations"
+below). A hub's own `AGENTS.md`/`SCHEMA.md` describe its *current*
+contract, not how it got there or how to move to a newer one — and by
+design a generated hub has no access to this engine repository (where
+`docs/migration-x.y.z.md` and `CHANGELOG.md` actually live) to look that
+up itself. This skill is the bridge: it's what an agent uses with access
+to *both* the target hub and this repository.
 
 This contract is written in English, but that doesn't set the language of
 the knowledge you edit: keep content in the language of the source
@@ -57,8 +66,10 @@ material, and don't translate it unless the user explicitly asks — see
 ## Choosing the action and how to save
 
 Recognize adding a source, answering a question, preparing an output, or
-changing the contract. Combine them when the request covers several.
-Choose the track before the first edit:
+changing the contract — the hub's own `AGENTS.md` defines what the first
+three actually mean and how to carry them out; this table only classifies
+which one a request is and how the result gets saved. Combine them when
+the request covers several. Choose the track before the first edit:
 
 | Track | Scope | Default way to save, if authorized |
 |---|---|---|
@@ -83,7 +94,20 @@ classifies the request, it doesn't restate that mechanics.
 
 ## Execution
 
-Once you've read the target's own `AGENTS.md`, follow it exactly for venv
+**Upgrading the contract itself** (the `contract` track, when the task is
+moving the hub to a newer `profile_version`): read the hub's current
+`hub.json` for its `profile_version`, then this repository's
+`CHANGELOG.md` for the current one. Apply every intervening
+`docs/migration-x.y.z.md` in order, one version at a time — don't skip a
+step even if it looks like it wouldn't apply, and don't hand-copy the new
+`AGENTS.md`/`SCHEMA.md` templates over the hub's own without following
+the actual migration doc, since a hub may have local customization the
+raw template overwrite would destroy. Re-run `validate_hub.py` after each
+step, not only at the end. This, like any other contract change, goes to
+a branch and PR without self-merging.
+
+For an ordinary content task, once you've read the target's own
+`AGENTS.md`, follow it exactly for venv
 setup, package installs (including an on-demand conversion library
 instead of a custom parser when the obvious tool is missing — see its
 "Mandatory check after editing" section), running `validate_hub.py` and

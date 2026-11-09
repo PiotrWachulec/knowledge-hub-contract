@@ -1,5 +1,10 @@
 # Working in this hub
 
+This file is this hub's own working contract — not the generator's
+contribution contract, which is a separate, identically-named file that
+doesn't travel with the hub. Nothing here depends on that other file or
+on its repository being reachable.
+
 Before working on knowledge, read SCHEMA.md, hub.json, and
 knowledge/index.md. Sources are in knowledge/00-bronze, the connected wiki
 is in knowledge/10-silver, and materials for specific uses are in
