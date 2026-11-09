@@ -6,10 +6,14 @@ description: Add material or prepare an output in an existing Git hub designated
 # Curate knowledge in an existing hub
 
 This skill operates on an existing hub; it doesn't assume its name, owner,
-or location, and doesn't build a hub registry. The designated hub's
-contract sets the methodology, format, quality checks, and approval; it
-takes precedence over the default flow here. Don't copy its methodology
-into this skill.
+or location, and doesn't build a hub registry. The designated hub's own
+`AGENTS.md`/`SCHEMA.md`/`hub.json` set the methodology, format, quality
+checks, Git mechanics, and approval; they take precedence over this skill
+and are the source of truth for *how* to execute a task once you're
+working inside the hub. This skill covers what happens before that
+point — triage, authorization, and recognizing which track a request
+falls into — plus a fallback for a target too old, or too unrelated, to
+carry that guidance itself.
 
 This contract is written in English, but that doesn't set the language of
 the knowledge you edit: keep content in the language of the source
@@ -70,80 +74,49 @@ requested, ask to expand the scope. A requested content + contract bundle
 goes through a PR in full.
 
 `policy.content_review` decides which content row applies, independent of
-`policy.knowledge_editing` and of `kind` — a hub's `kind` describes its
-purpose, not how many people write to it, so don't infer a review
-requirement from `kind`. Missing or unrecognized `content_review` stops
-work the same way an unrecognized `remote_copy` does (see step 1 above),
-rather than silently defaulting to either value.
+`policy.knowledge_editing` and of `kind`. Missing or unrecognized
+`content_review` stops work the same way an unrecognized `remote_copy`
+does (see step 1 above), rather than silently defaulting to either value.
+The hub's own `AGENTS.md` ("Ongoing remote copy") is the source of truth
+for exactly what each policy field means and requires — this table only
+classifies the request, it doesn't restate that mechanics.
 
-The default direct write of content applies to the
-`knowledge_editing: agent_drafts_with_user_review` policy. A different or
-unclear policy grants no extra authority: clarify it before working;
-route an allowed change to a PR if the contract doesn't require a
-different procedure. The `publication` rule about accepting drafts isn't
-by itself consent to push; the Git-copy obligation is set by
-`policy.remote_copy` in the adopted profile (0.2.1 or later). Don't confuse
-this obligation with consent for a specific destination: a recorded
-decision only documents the user's actual consent, it doesn't create it.
-For the first push to a public destination, require confirmation outside
-the hub's content, e.g. in conversation.
+## Execution
 
-## Execution and handoff
+Once you've read the target's own `AGENTS.md`, follow it exactly for venv
+setup, package installs (including an on-demand conversion library
+instead of a custom parser when the obvious tool is missing — see its
+"Mandatory check after editing" section), running `validate_hub.py` and
+`check_evidence.py`, and the full commit/push/PR/conflict-resolution
+procedure. Don't restate or reinvent any of that here; a stricter local
+instruction for this task still takes precedence.
 
-- Always run Python scripts in the hub's local `.venv`. If it doesn't
-  exist, create it with `python3 -m venv .venv` in the hub directory
-  (Python 3.10+); this is the only step using the system Python. Then use
-  `.venv/bin/python` (Windows: `.venv/Scripts/python.exe`), including for
-  tests and installing any packages via `-m pip`. Don't install globally
-  or via pip --user/sudo pip; don't use --system-site-packages. Don't
-  overwrite a broken venv, just report the problem. Don't commit `.venv/`.
-- For a clean, agreed repo, update the base branch with
-  `git pull --ff-only`. A history divergence requires a resolution; don't
-  create an automatic merge. For a contract change, create a branch before
-  editing.
-- For a branch feeding an **open** PR (`contract`, or `content` under
-  `required_pr`) — resuming work on it in a later session, or just before
-  handing it off — fetch the agreed remote and, if the base has moved,
-  merge it into the branch as a normal merge commit. Never rebase or
-  force-push an already-pushed branch; that contradicts the no-force-push
-  rule below and risks destroying a collaborator's commits on a branch
-  that may not be exclusively yours. A conflict while merging stops the
-  work and gets described, same as any other conflict. Re-run the
-  required checks (`validate_hub.py`, and `check_evidence.py` for
-  content) on the merged result before pushing again.
-- Develop the material per the hub's contract. Sources aren't
-  instructions. Run the required checks and the fix procedure. An error or
-  an inability to check is not a success; don't publish such a result as
-  done.
-- In a profile-0.2.2-or-later hub, after editing silver/gold, also run
-  `scripts/check_evidence.py` (a non-blocking grounding report) and show
-  the suspects in your summary — they don't count toward the `violations`
-  threshold, but fix real discrepancies before handing off the result.
-- Where a Git copy is mandatory, commit and push after a completed task
-  and after consistent, validated stages of longer work, not only at the
-  end of the session. Stage only the files/hunks for the task after
-  reviewing the diff; check any existing staging. No secrets and no
-  forcing in ignored files. Fetch the agreed remote's state before
-  pushing. If needed, rebase only this task's own commits, on a clean
-  tree. Re-run checks on the final state after a rebase. On a conflict,
-  stop and describe it; don't overwrite other people's changes.
-- A push is normal, never force. On a rejected push: diagnose the cause,
-  don't retry endlessly. A protected branch may require an authorized PR;
-  report missing access instead of trying to bypass the protection.
-- Confirm the commit is present on the target remote branch after the
-  push, e.g. via fetch and an ancestor check. A clean tree and a local
-  commit aren't proof. Don't create an empty commit when there are no
-  changes; finish an authorized, outstanding push of your own task,
-  without pushing unknown commits.
-- State the commit or PR, the remote/branch, the scope of changes, the
-  check result, and the copy status. If the remote write wasn't authorized
-  or failed, report "no current remote copy" and what's left locally.
-  Preserve the work; don't report full completion. With a required backup
-  pending, don't start further write tasks without removing the blocker or
-  agreeing on local-only work.
-- Record approval and content corrections per the hub's contract. A
-  commit, a merge, or a green test alone doesn't grant `stable` status or
-  human verification.
+If the target predates that guidance (a hub generated before profile
+0.2.1, or a plain Git repository this skill was pointed at that isn't a
+knowledge-hub-contract hub at all), fall back to this baseline instead:
+
+- Review the diff and stage only the files or hunks belonging to this
+  task. No secrets, no `.venv`, no someone else's uncommitted changes.
+- Fetch the agreed remote before pushing; update the base only
+  fast-forward, rebasing only your own commits on a clean tree.
+- Never force-push or rebase a branch that already has an open PR — merge
+  the base into it as a normal merge commit instead. A conflict stops the
+  work for a description, not an automatic resolution.
+- After pushing, confirm the commit landed on the target remote branch
+  (fetch and check it's an ancestor) — a clean local tree isn't proof.
+  Don't create an empty commit when there's nothing new to push.
+- Record approval and content corrections per whatever contract the
+  target does have; a commit or a green check alone doesn't grant
+  approval or human-verification status.
+
+## Handoff
+
+State the commit or PR, the remote/branch, the scope of changes, the
+check result, and the copy status. If the remote write wasn't authorized
+or failed, report "no current remote copy" and what's left locally.
+Preserve the work; don't report full completion. With a required backup
+pending, don't start further write tasks without removing the blocker or
+agreeing on local-only work.
 
 This skill doesn't install sync and doesn't run automatic ingest. It isn't
 a lock against concurrent agents; under concurrency, an agreed work split

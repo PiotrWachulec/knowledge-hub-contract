@@ -63,8 +63,12 @@ previous one.
 ## Two portable skills
 
 - [create-knowledge-hub](skills/create-knowledge-hub/SKILL.md) — creates a new hub.
-- [curate-knowledge-hub](skills/curate-knowledge-hub/SKILL.md) — handles a
-  task in an existing Git repository per its own contract.
+- [curate-knowledge-hub](skills/curate-knowledge-hub/SKILL.md) — triage and
+  authorization *before* opening an existing Git hub: locating the right
+  repository, confirming push access, recognizing which track (query,
+  content, contract) a request falls into. Once inside, the hub's own
+  `AGENTS.md` takes over — for the common "just open the hub and work" flow
+  above, you don't need this skill at all.
 
 The skills aren't installed globally. You can hand the agent a path to
 SKILL.md or move the whole chosen package. A merge in the engine alone
