@@ -14,6 +14,17 @@ shape or an existing hub's directory structure.
 
 ## [Unreleased]
 
+## [0.11.1] — 2026-11-09
+
+### Changed
+
+- `AGENTS.md` now recommends installing an existing conversion library
+  into `.venv` (`markdownify`/`trafilatura` for HTML→Markdown, `pypdf`
+  for PDF→text) instead of writing a custom parser when the obvious
+  tool (e.g. `pandoc`) is missing — prompted by an agent doing exactly
+  that while curating a hub. Docs-only wording, no new field, no
+  validator change.
+
 ## [0.11.0] — 2026-11-08
 
 ### Fixed
@@ -315,7 +326,8 @@ This profile ships identity only — no cross-hub citation mechanism yet.
   architecture: bronze preserves sources, silver grows a connected wiki,
   gold holds outputs prepared for a specific use.
 
-[Unreleased]: https://github.com/PiotrWachulec/knowledge-hub-contract/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/PiotrWachulec/knowledge-hub-contract/compare/v0.11.1...HEAD
+[0.11.1]: https://github.com/PiotrWachulec/knowledge-hub-contract/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/PiotrWachulec/knowledge-hub-contract/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/PiotrWachulec/knowledge-hub-contract/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/PiotrWachulec/knowledge-hub-contract/compare/v0.8.0...v0.9.0

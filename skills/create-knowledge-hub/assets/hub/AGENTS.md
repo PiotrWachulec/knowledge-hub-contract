@@ -72,7 +72,7 @@ review without an actual decision tied to specific content.
 
 ## Ongoing remote copy — commit and push
 
-Profile 0.11.0 declares in hub.json
+Profile 0.11.1 declares in hub.json
 `policy.remote_copy: "required_after_validated_task"`. This is an explicit
 Git-copy obligation, separate from approving drafts (`publication`) and
 from disabled operational actions (`external_actions`). A missing field,
@@ -170,6 +170,18 @@ Don't install packages globally, via pip --user or sudo pip, or with
 with `-m pip`; the validator itself doesn't require any. The environment
 is ignored by Git. The agent creates it, not the validator: checking
 remains a read-only operation.
+
+When ingest needs a format conversion and the obvious tool (e.g.
+`pandoc`) isn't on the system, install an existing library into `.venv`
+via `-m pip` rather than writing a custom parser:
+
+| Source | Package |
+|---|---|
+| HTML → Markdown | `markdownify` (plain conversion) or `trafilatura` (also strips boilerplate/ads from a saved web page) |
+| PDF → text | `pypdf` |
+
+Mention the added dependency in your summary; it's a `.venv` package of
+this hub, not a contract change.
 
 After adding material, preparing gold, or a correction, run locally
 `.venv/bin/python -B scripts/validate_hub.py` (paths relative to the hub
