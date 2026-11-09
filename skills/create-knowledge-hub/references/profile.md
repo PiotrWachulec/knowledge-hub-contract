@@ -1,6 +1,6 @@
 # New hub profile
 
-`hub.json` configures the local pattern (version 0.11.0). It's not part of
+`hub.json` configures the local pattern (version 0.11.1). It's not part of
 the OKF standard. Policy declarations are instructions for the agent; the
 generator doesn't install a process that technically enforces them.
 
@@ -101,6 +101,14 @@ Write the changelog entry as part of the PR that bumps `profile_version`
 (under "Unreleased" until merged, then retitled with the release date).
 The tag can only be created afterward, on the actual merge commit once it
 exists — push it right after merging, not as a later afterthought.
+
+Profile 0.11.1 adds a recommendation table to `AGENTS.md`'s "Mandatory
+check after editing" section: when ingest needs a format conversion and
+the obvious tool (e.g. `pandoc`) isn't on the system, install an
+existing library into `.venv` (`markdownify`/`trafilatura` for HTML,
+`pypdf` for PDF) rather than writing a custom parser — prompted by an
+agent doing exactly that in a real hub. Docs-only wording, no new field,
+no validator change, no migration doc.
 
 Profile 0.11.0 fixes a gap a fresh-context repository review found
 between documented and actual `validate_hub.py` behavior:
