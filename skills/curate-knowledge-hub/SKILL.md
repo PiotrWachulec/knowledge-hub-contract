@@ -107,8 +107,8 @@ step, not only at the end. This, like any other contract change, goes to
 a branch and PR without self-merging.
 
 For an ordinary content task, once you've read the target's own
-`AGENTS.md`, follow it exactly for venv
-setup, package installs (including an on-demand conversion library
+`AGENTS.md`, follow it exactly for venv setup, package installs
+(including an on-demand conversion library
 instead of a custom parser when the obvious tool is missing — see its
 "Mandatory check after editing" section), running `validate_hub.py` and
 `check_evidence.py`, and the full commit/push/PR/conflict-resolution

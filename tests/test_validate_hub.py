@@ -267,9 +267,9 @@ class ValidateHubTests(unittest.TestCase):
         for version in ('0.10.0', '0.2.2', '0.2.1', '0.2.0', '0.1.1', '0.5.1', None, 0.4):
             with self.subTest(version=version):
                 self.config(lambda c: c.update(profile_version=version))
-                self.validate(False, 'implements profile 0.11.0')
+                self.validate(False, 'implements profile 0.11.1')
         self.config(lambda c: c.pop('profile_version'))
-        self.validate(False, 'implements profile 0.11.0')
+        self.validate(False, 'implements profile 0.11.1')
 
     def test_invalid_remote_copy_policy_does_not_skip_documents(self):
         self.config(lambda c: c['policy'].pop('remote_copy'))
