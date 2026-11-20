@@ -1,6 +1,6 @@
 # New hub profile
 
-`hub.json` configures the local pattern (version 0.11.1). It's not part of
+`hub.json` configures the local pattern (version 0.12.0). It's not part of
 the OKF standard. Policy declarations are instructions for the agent; the
 generator doesn't install a process that technically enforces them.
 
@@ -80,6 +80,21 @@ shape only — no trust-tier computation, no staleness check against the
 current date, since the validator is deterministic and takes no
 wall-clock input. See SCHEMA.md's "Approval and changes" section.
 
+`superseded_by` is also a document-level field, added in 0.12.0: the
+reverse of `supersedes`, declared on the old (deprecated) document to
+name the new one that replaced it. `validate_hub.py` requires it to
+point at an existing local `.md` document, not itself, and requires the
+declaring document's own `status` to be `deprecated` — it never checks
+that a `supersedes`/`superseded_by` pair actually names each other back.
+Since 0.12.0, `validate_hub.py` also treats a `verified[]` entry whose
+`at` predates the document's own `generated.at` as stale: it stays in
+the array as history but a reader's trust-tier derivation (see
+SCHEMA.md's "Approval and changes") no longer counts it, flagged as a
+non-blocking warning. `okf_version` moves from `"0.2"` to `"0.3"` in both
+`hub.json` and `knowledge/index.md`'s frontmatter — see the Versioning
+section below (Profile 0.12.0) for what that bump does and doesn't
+change.
+
 The skill directory can be copied in full. The templates are generator
 resources. A template change applies to new hubs; an existing hub keeps
 its own contract.
@@ -101,6 +116,34 @@ Write the changelog entry as part of the PR that bumps `profile_version`
 (under "Unreleased" until merged, then retitled with the release date).
 The tag can only be created afterward, on the actual merge commit once it
 exists — push it right after merging, not as a later afterthought.
+
+Profile 0.12.0 aligns the local contract with
+[OKF v0.3](https://github.com/open-knowledge-format/open-knowledge-format/blob/main/SPEC.md),
+released after this project's templates were written against OKF 0.2.
+Reviewing the v0.3 changes (current-verification trust signals, a
+lifecycle `superseded_by` field, and standardized actor identifiers —
+all additive, since OKF stays additive-only before 1.0 but documents
+breaking changes per minor version) against what this contract already
+had found three genuine gaps, not a wholesale rewrite: `okf_version`
+bumps from `"0.2"` to `"0.3"` in `hub.json` and `knowledge/index.md`
+(this project's existing path-resolution convention — `resource`
+relative to the containing document — already matches OKF 0.3's new
+default, so nothing else about link handling changes); a new optional
+document field `superseded_by`, the reverse of `supersedes`, declared on
+the old (deprecated) document to point forward at its replacement,
+closing the one-directional-pointer limitation `docs/migration-0.9.0.md`
+already named; and a sharpened trust-tier rule for `verified[]` —
+`validate_hub.py` now warns (non-blocking) when an entry's `at` predates
+the document's own `generated.at`, since OKF 0.3 formalizes "only a
+current verification counts" and this project's own `SCHEMA.md` already
+flagged the lack of exactly this check as a known gap ("this contract
+has no mechanism that automatically invalidates `verified[]` on edit").
+The actor-identifier convention also gains a documented `team:<id>`
+prefix alongside `human:`/`process:`/`<vendor>/<version>`, matching
+OKF 0.3's `team:` addition — docs only, since `validate_hub.py` already
+accepted any nonempty `by` string. The adoption procedure for
+0.11.1 → 0.12.0 is in docs/migration-0.12.0.md in the generator
+repository.
 
 Profile 0.11.1 adds a recommendation table to `AGENTS.md`'s "Mandatory
 check after editing" section: when ingest needs a format conversion and

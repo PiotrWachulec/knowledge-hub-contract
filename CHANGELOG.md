@@ -14,6 +14,45 @@ shape or an existing hub's directory structure.
 
 ## [Unreleased]
 
+## [0.12.0] — 2026-11-20
+
+### Added
+
+- Optional document field `superseded_by`: the reverse of `supersedes`,
+  declared on the old (deprecated) document to point forward at the
+  document that replaced it, so a reader landing on a deprecated file
+  doesn't have to search the hub for its successor. `validate_hub.py`
+  requires it to point at an existing local `.md` document, not itself,
+  and requires the declaring document's own `status` to be `deprecated`;
+  it doesn't check that a `supersedes`/`superseded_by` pair actually
+  names each other back.
+- `validate_hub.py` now warns (non-blocking) on a `verified[]` entry
+  whose `at` predates the document's own `generated.at` — it stays in
+  the array as history but no longer counts toward the trust tier a
+  reader derives from the array.
+- `docs/migration-0.12.0.md`.
+
+### Changed
+
+- `okf_version` moves from `"0.2"` to `"0.3"` in `hub.json` and
+  `knowledge/index.md`'s frontmatter, aligning with the
+  [OKF v0.3](https://github.com/open-knowledge-format/open-knowledge-format/blob/main/SPEC.md)
+  release. This project's existing path-resolution convention already
+  matches OKF 0.3's new default (`resource` relative to the containing
+  document), so no other link-handling behavior changes.
+- `generated.by`/`verified[].by`'s documented actor convention adds a
+  `team:<id>` prefix alongside `human:`/`process:`/`<vendor>/<version>`,
+  matching OKF 0.3. Docs only — `validate_hub.py` already accepted any
+  nonempty `by` string.
+- OKF spec link updated to its new home,
+  `open-knowledge-format/open-knowledge-format` (moved out of
+  `GoogleCloudPlatform` as of v0.3).
+
+Prompted by checking whether OKF had released a new version since this
+project's templates were written against v0.2 — it had (v0.3). See
+`skills/create-knowledge-hub/references/profile.md`'s Versioning section
+for the full comparison against what this contract already had.
+
 ## [0.11.1] — 2026-11-09
 
 ### Changed
@@ -326,7 +365,8 @@ This profile ships identity only — no cross-hub citation mechanism yet.
   architecture: bronze preserves sources, silver grows a connected wiki,
   gold holds outputs prepared for a specific use.
 
-[Unreleased]: https://github.com/PiotrWachulec/knowledge-hub-contract/compare/v0.11.1...HEAD
+[Unreleased]: https://github.com/PiotrWachulec/knowledge-hub-contract/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/PiotrWachulec/knowledge-hub-contract/compare/v0.11.1...v0.12.0
 [0.11.1]: https://github.com/PiotrWachulec/knowledge-hub-contract/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/PiotrWachulec/knowledge-hub-contract/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/PiotrWachulec/knowledge-hub-contract/compare/v0.9.0...v0.10.0

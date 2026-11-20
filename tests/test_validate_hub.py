@@ -264,12 +264,12 @@ class ValidateHubTests(unittest.TestCase):
         self.assertEqual(report['warnings'], [])
 
     def test_profile_version_requires_explicit_upgrade(self):
-        for version in ('0.10.0', '0.2.2', '0.2.1', '0.2.0', '0.1.1', '0.5.1', None, 0.4):
+        for version in ('0.11.1', '0.10.0', '0.2.2', '0.2.1', '0.2.0', '0.1.1', '0.5.1', None, 0.4):
             with self.subTest(version=version):
                 self.config(lambda c: c.update(profile_version=version))
-                self.validate(False, 'implements profile 0.11.1')
+                self.validate(False, 'implements profile 0.12.0')
         self.config(lambda c: c.pop('profile_version'))
-        self.validate(False, 'implements profile 0.11.1')
+        self.validate(False, 'implements profile 0.12.0')
 
     def test_invalid_remote_copy_policy_does_not_skip_documents(self):
         self.config(lambda c: c['policy'].pop('remote_copy'))
@@ -339,7 +339,7 @@ class ValidateHubTests(unittest.TestCase):
                 original = path.read_text(encoding='utf-8')
                 path.write_text(original + '\n[Missing](missing.md)\n', encoding='utf-8')
                 self.validate(False, 'does not exist')
-                path.write_text('---\nokf_version: "0.2"\nsources:\n'
+                path.write_text('---\nokf_version: "0.3"\nsources:\n'
                                 '  - id: missing\n    resource: missing.txt\n---\n'
                                 'Description.[^missing]\n\n[^missing]: Source.\n', encoding='utf-8')
                 self.validate(False, 'does not exist')
@@ -683,6 +683,47 @@ class ValidateHubTests(unittest.TestCase):
         self.assertTrue(any(e['file'] == 'knowledge/00-bronze/new-source.md'
                             for e in report['errors']))
 
+    def test_superseded_by_requires_declaring_doc_status_deprecated(self):
+        (self.hub / 'knowledge/00-bronze/new-source.md').write_text(
+            BRONZE_DOC.format(status='stable', extra=''), encoding='utf-8')
+        (self.hub / 'knowledge/00-bronze/old-source.md').write_text(
+            BRONZE_DOC.format(status='stable', extra='superseded_by: new-source.md\n'),
+            encoding='utf-8')
+        report = self.validate(False, 'status: deprecated')
+        self.assertTrue(any(e['file'] == 'knowledge/00-bronze/old-source.md'
+                            for e in report['errors']))
+
+    def test_superseded_by_with_deprecated_status_is_clean(self):
+        (self.hub / 'knowledge/00-bronze/new-source.md').write_text(
+            BRONZE_DOC.format(status='stable', extra=''), encoding='utf-8')
+        (self.hub / 'knowledge/00-bronze/old-source.md').write_text(
+            BRONZE_DOC.format(status='deprecated', extra='superseded_by: new-source.md\n'),
+            encoding='utf-8')
+        report = self.validate()
+        self.assertFalse(any('supersed' in e['message'] for e in report['errors']))
+
+    def test_superseded_by_self_reference_is_rejected(self):
+        (self.hub / 'knowledge/00-bronze/self-source.md').write_text(
+            BRONZE_DOC.format(status='deprecated', extra='superseded_by: self-source.md\n'),
+            encoding='utf-8')
+        self.validate(False, 'cannot be superseded by itself')
+
+    def test_superseded_by_missing_target_is_violation(self):
+        (self.hub / 'knowledge/00-bronze/old-source.md').write_text(
+            BRONZE_DOC.format(status='deprecated', extra='superseded_by: missing.md\n'),
+            encoding='utf-8')
+        self.validate(False, 'does not exist')
+
+    def test_superseded_by_pointing_at_non_markdown_target_is_rejected(self):
+        (self.hub / 'knowledge/00-bronze/new-source.txt').write_text(
+            'Raw content.\n', encoding='utf-8')
+        (self.hub / 'knowledge/00-bronze/old-source.md').write_text(
+            BRONZE_DOC.format(status='deprecated', extra='superseded_by: new-source.txt\n'),
+            encoding='utf-8')
+        report = self.validate(False, 'superseded_by must point to a .md document')
+        self.assertTrue(any(e['file'] == 'knowledge/00-bronze/old-source.md'
+                            for e in report['errors']))
+
     def test_retrieved_at_requires_iso_datetime_with_timezone(self):
         path = self.hub / 'knowledge/00-bronze/dated-source.md'
         path.write_text(BRONZE_DOC.format(status='stable', extra='retrieved_at: 2026-09-23\n'),
@@ -737,6 +778,25 @@ class ValidateHubTests(unittest.TestCase):
             encoding='utf-8')
         report = self.validate()
         self.assertFalse(any('verified' in e['message'] for e in report['errors']))
+        self.assertFalse(any('predates' in w['message'] for w in report['warnings']))
+
+    def test_verified_entry_predating_generated_at_is_warned(self):
+        path = self.hub / 'knowledge/00-bronze/verified-source.md'
+        path.write_text(
+            BRONZE_DOC.format(status='stable',
+                               extra='verified:\n  - by: human:editor\n    at: 2026-09-22T12:00:00Z\n'),
+            encoding='utf-8')
+        report = self.validate()
+        self.assertTrue(any('predates generated.at' in w['message'] for w in report['warnings']))
+
+    def test_verified_entry_at_or_after_generated_at_is_not_stale(self):
+        path = self.hub / 'knowledge/00-bronze/verified-source.md'
+        path.write_text(
+            BRONZE_DOC.format(status='stable',
+                               extra='verified:\n  - by: human:editor\n    at: 2026-09-24T12:00:00Z\n'),
+            encoding='utf-8')
+        report = self.validate()
+        self.assertFalse(any('predates' in w['message'] for w in report['warnings']))
 
     def test_verified_supports_multiple_entries(self):
         path = self.hub / 'knowledge/00-bronze/verified-source.md'
@@ -828,7 +888,7 @@ class ValidateHubTests(unittest.TestCase):
     def test_index_version_and_missing_scaffold(self):
         index = self.hub / 'knowledge/index.md'
         original = index.read_text()
-        index.write_text(original.replace('"0.2"', '"0.3"'))
+        index.write_text(original.replace('"0.3"', '"0.2"'))
         self.validate(False, 'okf_version')
         index.unlink()
         self.validate(False, 'Required scaffold file')
