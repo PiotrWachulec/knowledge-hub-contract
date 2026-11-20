@@ -9,7 +9,7 @@ import re
 import sys
 import uuid
 
-PROFILE_VERSION = "0.11.1"
+PROFILE_VERSION = "0.12.0"
 ASSETS = Path(__file__).resolve().parent.parent / "assets" / "hub"
 CONVENTIONS = Path(__file__).resolve().parent.parent / "assets" / "conventions"
 
@@ -55,7 +55,7 @@ def build_files(args: argparse.Namespace) -> dict[Path, str]:
         files[Path(f"conventions/{name}.md")] = (CONVENTIONS / f"{name}.md").read_text(encoding="utf-8")
     config = {
         "profile_version": PROFILE_VERSION,
-        "okf_version": "0.2",
+        "okf_version": "0.3",
         "id": args.id,
         "title": args.title,
         "kind": args.kind,
@@ -178,7 +178,7 @@ def build_files(args: argparse.Namespace) -> dict[Path, str]:
         "only. This isn't a background backup; the copy doesn't cover "
         "external recordings, ignored files, or unpushed changes. Those "
         "need their own separate protection.\n\n"
-        f"Generated under profile {PROFILE_VERSION}. "
+        f"Generated under profile {PROFILE_VERSION} (OKF 0.3). "
         "This directory needs no access to the generator or to a parent repository.\n"
     )
     files[Path(".gitignore")] = (

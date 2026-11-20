@@ -1,6 +1,6 @@
-# Knowledge processing contract — profile 0.11.1
+# Knowledge processing contract — profile 0.12.0
 
-This contract describes work inside a single hub. The OKF 0.2 bundle covers
+This contract describes work inside a single hub. The OKF 0.3 bundle covers
 only `knowledge/`. Configuration and instructions in the parent directory
 are not part of the bundle. The additional rules below are a local working
 profile, not OKF requirements.
@@ -47,7 +47,22 @@ only makes sense between documents that carry a `status` field, so it
 points at another `.md` document, not a raw `.txt` dump — also a hard
 error `validate_hub.py` enforces, not just a convention to follow.
 
-Example:
+The old file may optionally carry the reverse pointer, `superseded_by`,
+naming the new file it was replaced by — a forward link so a reader who
+lands on the deprecated document first doesn't have to search the hub
+for whatever superseded it. It's a one-sided convenience, not a required
+second half of the pair: `supersedes` alone, with `status: deprecated`
+on the target, is still a complete, valid claim on its own, same as
+before this field existed. When present, `superseded_by` must point to
+an existing local `.md` document and not to itself; since only a
+document declaring it is the one being replaced, its own `status` must
+be `deprecated` too — `validate_hub.py` enforces both. Nothing checks
+that the two pointers agree with each other (a `supersedes` on one side
+and a `superseded_by` on the other naming each other back); keeping them
+consistent, like the rest of this pair, is the agent's job when editing
+either file.
+
+Example — the new file:
 
 ```yaml
 ---
@@ -61,6 +76,21 @@ generated:
 retrieved_at: 2026-10-24T09:40:00Z
 source_ref: page revision 2026-10-18
 supersedes: vendor-pricing-page-2026-04.md
+---
+```
+
+and the old file it replaces:
+
+```yaml
+---
+type: Source
+title: Vendor pricing page (2026-04)
+description: Captured pricing tiers, now superseded by the 2026-10 refresh.
+status: deprecated
+generated:
+  by: human:editor
+  at: 2026-04-12T09:00:00Z
+superseded_by: vendor-pricing-page-2026-10.md
 ---
 ```
 
@@ -104,8 +134,12 @@ sources:
 ```
 
 When actually writing, add a `generated` block with `by` and `at` fields,
-with a correct actor (e.g. `process:name`, `human:identifier`, or
-`vendor/version`) and an ISO 8601 timestamp with timezone. Don't copy a
+with a correct actor (e.g. `process:name`, `human:identifier`,
+`team:name`, or `vendor/version`) and an ISO 8601 timestamp with
+timezone. `team:name` names a group acting as a single actor (e.g. a
+shared editorial team), distinct from one `human:identifier`; it's
+documentation convention only, same as the other prefixes — the
+validator checks `by` is a nonempty string, nothing more. Don't copy a
 fictitious model name from the examples. Generate `doc_key` the same way —
 with the real tool, not invented: run
 `.venv/bin/python -c "import uuid; print(uuid.uuid4())"` in the hub and
@@ -146,7 +180,7 @@ built on — see "Cross-hub references."
 The navigation indexes from the list above don't replace knowledge
 documents. `knowledge/index.md` is the one exception that holds static
 links — four, one per layer, fixed in number — and requires
-`okf_version: "0.2"` frontmatter. The four layer indexes
+`okf_version: "0.3"` frontmatter. The four layer indexes
 (`00-bronze/index.md`, `10-silver/index.md`, `20-gold/index.md`,
 `90-decisions/index.md`) don't require document metadata, and don't hold
 a manually maintained list of links either: each one carries a short
@@ -318,7 +352,7 @@ also ready to be a citation target.
 `.venv/bin/python -B scripts/validate_hub.py` checks the hub containing the
 script, not the current working directory. Python 3.10+, standard library
 only, no network access, no writes. This is a validator for local profile
-0.11.1, not the full OKF. Scripts always run inside the local virtual
+0.12.0, not the full OKF. Scripts always run inside the local virtual
 environment. If `.venv` doesn't exist, the agent creates it beforehand with
 `python3 -m venv .venv` in the hub directory. On Windows the interpreter is
 at `.venv/Scripts/python.exe`. No system-wide installs; any packages only
@@ -329,7 +363,7 @@ Checks:
 
 - the required scaffold files, the `hub.json` configuration, and every
   `.md` file under knowledge;
-- `profile_version: "0.11.1"` and
+- `profile_version: "0.12.0"` and
   `policy.remote_copy: "required_after_validated_task"`;
 - document frontmatter (outside the closed exception list above): `type`,
   `title`, `description`, `status`, `generated`; `type` must be in
@@ -343,7 +377,7 @@ Checks:
 - used footnotes have a definition and a `sources[].id`; unused ids
   produce a warning;
 - relative Markdown links point to existing files;
-- the main `knowledge/index.md` declares `okf_version: "0.2"`;
+- the main `knowledge/index.md` declares `okf_version: "0.3"`;
 - `knowledge/log.md` has no frontmatter; entries sit under `## YYYY-MM-DD`
   headings, with valid, non-repeating dates from newest to oldest. An
   empty log may contain only the H1 heading and blank lines;
@@ -363,8 +397,17 @@ Checks:
   `status` is `deprecated`, else an error; a silver/gold source pointing
   at a superseded bronze file produces a warning, not an error (see
   "Source freshness and supersession").
+- if present, `superseded_by` points to an existing local `.md` document,
+  not to itself, and the document declaring it has `status: deprecated`
+  itself, else an error (see "Source freshness and supersession"); the
+  validator doesn't check that a paired `supersedes`/`superseded_by` on
+  the two sides actually names each other back.
 - if present, `verified` is a list whose entries each have a nonempty
-  `by` and an `at` that's an ISO 8601 datetime with timezone;
+  `by` and an `at` that's an ISO 8601 datetime with timezone; an entry
+  whose `at` predates the document's own `generated.at` produces a
+  warning, not an error — it stays in the array as history, but doesn't
+  count toward the trust tier a reader derives (see "Approval and
+  changes");
 - if present, `stale_after` is an ISO 8601 datetime with timezone (see
   "Approval and changes").
 
@@ -693,27 +736,31 @@ a later, explicitly established policy for that process.
 
 The optional `verified` field describes a content check, not mere consent
 to use it — a list of entries, each `{by, at}`: an actor using the same
-convention as `generated.by` (`human:<id>`, `process:<id>`, or
-`<vendor>/<version>`) and an ISO 8601 datetime with timezone recording
+convention as `generated.by` (`human:<id>`, `process:<id>`, `team:<id>`,
+or `<vendor>/<version>`) and an ISO 8601 datetime with timezone recording
 when that actor checked the content. The agent doesn't grant itself human
 verification: adding an entry whose `by` isn't `human:...` records a
 mechanical or agent re-check, not a substitute for one. A reader derives
-a trust tier from the array as a whole — nothing stores the tier itself:
+a trust tier from the array, but only from entries that are current —
+`at` no earlier than the document's own `generated.at` (its last
+meaningful content change); an older entry stays in the array as history
+but doesn't count toward the tier below. Nothing stores the tier itself:
 
-- no `verified` key at all — **unverified**;
-- `verified` present but no entry's `by` starts with `human:` —
+- no `verified` key at all, or no current entry — **unverified**;
+- a current entry present but none with a `human:` actor —
   **machine-confirmed**;
-- at least one entry with a `human:` actor — **human-reviewed**.
+- at least one current entry with a `human:` actor — **human-reviewed**.
 
-After a substantive change, the earlier verification stays in the old
-version's history; the new one requires a fresh check — this contract has
-no mechanism that automatically invalidates `verified[]` on edit, so
-adding a fresh entry after a substantive change is a manual step, same as
-every other frontmatter field here. A future approval mechanism should tie
-the decision to a content hash. `validate_hub.py` checks the shape of
-each entry (a nonempty `by`, a valid `at`); it has no opinion on whether a
-check actually happened — declared, not inferred, the same as
-`classification` above.
+A substantive change to the document naturally moves `generated.at`
+forward, which is what ages an old `verified[]` entry out of the tier —
+the earlier check itself isn't deleted or edited, it just stops counting
+until a fresh one is added. `validate_hub.py` enforces this as a
+non-blocking warning on a stale entry, not as a trust-tier computation it
+stores anywhere; adding a fresh entry after a substantive change is still
+a manual step, same as every other frontmatter field here. `validate_hub.py`
+also checks the shape of each entry (a nonempty `by`, a valid `at`); it
+has no opinion on whether a check actually happened — declared, not
+inferred, the same as `classification` above.
 
 The optional `stale_after` (an ISO 8601 datetime with timezone) marks the
 need for a review over time. Don't renew freshness just because the
@@ -754,7 +801,7 @@ the other two scopes: `publication` concerns accepting drafts for
 publication, and `external_actions` concerns operational actions, e.g.
 changing a campaign budget. The field doesn't pick a remote and doesn't
 authorize sending to just any destination. It's required under profile
-0.11.1. A missing or different value is a contract inconsistency, not a
+0.12.0. A missing or different value is a contract inconsistency, not a
 local-work mode. An instruction for local-only work is an exception for
 the task, not a configuration change. An older hub without this field
 hasn't automatically adopted this rule; it needs an explicit contract
@@ -768,7 +815,7 @@ agreed main branch as a draft, same as before this field existed.
 `"required_pr"` routes content through the same branch + PR + review
 procedure already used for contract changes, with no self-merge — useful
 once more than one person or agent writes to the same hub, to avoid
-silent overwrites. It's required under profile 0.11.1, with the same rule
+silent overwrites. It's required under profile 0.12.0, with the same rule
 as `remote_copy`: a missing or different value is a contract
 inconsistency, not a default, and an older hub without the field hasn't
 adopted either value automatically.

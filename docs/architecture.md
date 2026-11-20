@@ -108,5 +108,5 @@ output when you need it.
 
 - [LLM Wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f):
   incremental knowledge maintenance by an agent.
-- [OKF](https://github.com/GoogleCloudPlatform/open-knowledge-format/blob/main/SPEC.md):
-  the storage format. The current templates use version 0.2.
+- [OKF](https://github.com/open-knowledge-format/open-knowledge-format/blob/main/SPEC.md):
+  the storage format. The current templates use version 0.3.
