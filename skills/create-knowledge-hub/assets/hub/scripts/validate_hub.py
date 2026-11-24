@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only validator of local hub profile 0.11.1, NOT a general OKF validator.
+"""Read-only validator of local hub profile 0.12.0, NOT a general OKF validator.
 
 Python 3.10+, standard library only. The supported frontmatter/Markdown
 subset and deliberate exclusions are documented in the hub's SCHEMA.md.
@@ -168,6 +168,14 @@ def valid_iso_datetime(value) -> bool:
         return parsed.tzinfo is not None and parsed.utcoffset() is not None
     except ValueError:
         return False
+
+
+def parse_iso_datetime(value):
+    """Returns an aware datetime for an already-`valid_iso_datetime` value,
+    None otherwise -- callers must check validity first if that matters."""
+    if not valid_iso_datetime(value):
+        return None
+    return datetime.fromisoformat(value.replace('Z', '+00:00'))
 
 
 class Validator:
@@ -459,8 +467,8 @@ class Validator:
                 self.report(doc, 1, "log.md must not contain frontmatter")
             self.log(doc, text)
         elif relative == 'index.md':
-            if not isinstance(fm, dict) or fm.get('okf_version') != '0.2':
-                self.report(doc, 1, 'Root index requires okf_version: "0.2"')
+            if not isinstance(fm, dict) or fm.get('okf_version') != '0.3':
+                self.report(doc, 1, 'Root index requires okf_version: "0.3"')
         elif not navigation_index:
             if fm is None:
                 self.report(doc, 1, "Missing frontmatter")
@@ -485,6 +493,7 @@ class Validator:
             source_ref = fm.get('source_ref')
             if source_ref is not None and not nonempty(source_ref):
                 self.report(doc, position('source_ref'), "source_ref must be a nonempty string when present")
+            generated_at = parse_iso_datetime(timestamp)
             verified = fm.get('verified')
             if verified is not None:
                 if not isinstance(verified, list):
@@ -498,6 +507,13 @@ class Validator:
                         if not valid_iso_datetime(entry.get('at')):
                             self.report(doc, position('verified'),
                                          "verified[].at must be an ISO 8601 datetime with timezone")
+                            continue
+                        entry_at = parse_iso_datetime(entry.get('at'))
+                        if generated_at is not None and entry_at < generated_at:
+                            self.report(doc, position('verified'),
+                                         "verified[] entry predates generated.at — stays as "
+                                         "history but doesn't count toward the trust tier",
+                                         warning=True)
             stale_after = fm.get('stale_after')
             if stale_after is not None and not valid_iso_datetime(stale_after):
                 self.report(doc, position('stale_after'),
@@ -516,6 +532,25 @@ class Validator:
                         elif target.is_relative_to(self.root):
                             self.supersedes_edges.append((doc, target, position('supersedes')))
                             self.superseded_by.setdefault(target, doc)
+                    except (ValueError, OSError, RuntimeError):
+                        pass
+            superseded_by_field = fm.get('superseded_by')
+            if superseded_by_field is not None:
+                self.local_file(doc, superseded_by_field, position('superseded_by'), source=True)
+                if isinstance(superseded_by_field, str) and superseded_by_field.strip():
+                    try:
+                        target = (doc.parent / superseded_by_field).resolve()
+                        if target == doc_resolved:
+                            self.report(doc, position('superseded_by'),
+                                         "A document cannot be superseded by itself")
+                        elif target.is_file() and target.suffix.lower() != '.md':
+                            self.report(doc, position('superseded_by'),
+                                         "superseded_by must point to a .md document, "
+                                         "not a raw source file")
+                        elif fm.get('status') != 'deprecated':
+                            self.report(doc, position('superseded_by'),
+                                         "A document declaring superseded_by must itself "
+                                         "have status: deprecated")
                     except (ValueError, OSError, RuntimeError):
                         pass
         # Validate sources whenever present, including indexes (not only required cases).
@@ -724,10 +759,10 @@ class Validator:
                 raise ValueError('concept_types must be a nonempty list of strings')
             if len(set(types)) != len(types):
                 raise ValueError('Duplicate concept_types')
-            if config.get('bundle_root') != 'knowledge' or config.get('okf_version') != '0.2':
-                raise ValueError('This profile requires bundle_root=knowledge and okf_version=0.2')
-            if config.get('profile_version') != '0.11.1':
-                raise ValueError('This validator implements profile 0.11.1')
+            if config.get('bundle_root') != 'knowledge' or config.get('okf_version') != '0.3':
+                raise ValueError('This profile requires bundle_root=knowledge and okf_version=0.3')
+            if config.get('profile_version') != '0.12.0':
+                raise ValueError('This validator implements profile 0.12.0')
             hub_key = config.get('hub_key')
             if not isinstance(hub_key, str) or not UUID_RE.fullmatch(hub_key):
                 raise ValueError('hub_key must be a UUID')
@@ -747,9 +782,9 @@ class Validator:
             policy = config.get('policy')
             if (not isinstance(policy, dict)
                     or policy.get('remote_copy') != 'required_after_validated_task'):
-                raise ValueError('Profile 0.11.1 requires policy.remote_copy=required_after_validated_task')
+                raise ValueError('Profile 0.12.0 requires policy.remote_copy=required_after_validated_task')
             if policy.get('content_review') not in ('direct', 'required_pr'):
-                raise ValueError('Profile 0.11.1 requires policy.content_review to be '
+                raise ValueError('Profile 0.12.0 requires policy.content_review to be '
                                  '"direct" or "required_pr"')
             quality = config.get('quality', {})
             if (not isinstance(quality, dict) or quality.get('validator') != 'scripts/validate_hub.py'
